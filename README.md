@@ -1,0 +1,1 @@
+i love vintage photo booths but theyre so expensive due to film materials becoming super expensive over the past two decades. for my birthday, I wanted to provide my guests with something fun that I could just have right on my ipad and print instantly! 
