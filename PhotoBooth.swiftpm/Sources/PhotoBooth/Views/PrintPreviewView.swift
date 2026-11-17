@@ -5,7 +5,7 @@ struct PrintPreviewView: View {
     @EnvironmentObject private var session: PhotoBoothSession
 
     var body: some View {
-        PanelScreen(title: "ready 2 print!!", onClose: { session.backFromPreview() }) {
+        PanelScreen(title: "ready 2 print!!", onBack: goBack) {
             VStack(spacing: 24) {
                 if let sheet = session.composedSheet {
                     Image(uiImage: sheet)
@@ -43,6 +43,17 @@ struct PrintPreviewView: View {
 
                 Spacer()
             }
+        }
+    }
+
+    /// A strip opened from the gallery goes back to the gallery; a freshly made one
+    /// goes back to frame selection so the frame or message can be changed without
+    /// retaking the photos ("start over" is still the way to begin a new strip).
+    private func goBack() {
+        if session.viewingSavedStrip != nil {
+            session.backFromPreview()
+        } else {
+            session.backToChooseFrame()
         }
     }
 

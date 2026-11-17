@@ -7,7 +7,7 @@ struct GalleryView: View {
     private let columns = [GridItem(.adaptive(minimum: 140), spacing: 16)]
 
     var body: some View {
-        PanelScreen(title: "my strips", onClose: { session.closeGallery() }) {
+        PanelScreen(title: "my strips", onBack: { session.closeGallery() }) {
             if session.savedStrips.isEmpty {
                 VStack(spacing: 12) {
                     Text("no strips yet =(")

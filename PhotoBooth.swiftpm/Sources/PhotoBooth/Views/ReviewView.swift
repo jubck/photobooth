@@ -4,7 +4,7 @@ struct ReviewView: View {
     @EnvironmentObject private var session: PhotoBoothSession
 
     var body: some View {
-        PanelScreen(title: "how'd it turn out?", onClose: { session.retake() }) {
+        PanelScreen(title: "how'd it turn out?", onBack: { session.retake() }) {
             VStack(spacing: 28) {
                 HStack(spacing: 12) {
                     ForEach(Array(session.filteredImages.enumerated()), id: \.offset) { _, image in

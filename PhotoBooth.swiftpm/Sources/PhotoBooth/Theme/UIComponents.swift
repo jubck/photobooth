@@ -37,29 +37,45 @@ struct CuteButtonStyle: ButtonStyle {
     }
 }
 
+/// Steps back one screen. Used in every panel header and over the camera preview.
+struct BackButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: "chevron.left")
+                    .font(.appFont(14, weight: .black))
+                Text("back")
+                    .font(.appFont(16, weight: .bold))
+            }
+            .foregroundStyle(Theme.ink)
+            .padding(.horizontal, 12)
+            .frame(height: 36)
+            .background(Theme.cream)
+            .cuteBorder(cornerRadius: 10, lineWidth: 2.5)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("back")
+    }
+}
+
 struct PanelScreen<Content: View>: View {
     let title: String
-    var onClose: (() -> Void)?
+    /// Shows a back button in the header. Omit on the first screen.
+    var onBack: (() -> Void)?
     @ViewBuilder var content: Content
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
+            HStack(spacing: 14) {
+                if let onBack {
+                    BackButton(action: onBack)
+                }
                 Text(title)
                     .font(.appFont(28, weight: .bold))
                     .foregroundStyle(Theme.ink)
                 Spacer()
-                if let onClose {
-                    Button(action: onClose) {
-                        Image(systemName: "xmark")
-                            .font(.appFont(14, weight: .black))
-                            .foregroundStyle(.white)
-                            .frame(width: 32, height: 32)
-                            .background(Theme.accentRed)
-                            .cuteBorder(cornerRadius: 8, lineWidth: 2.5)
-                    }
-                    .buttonStyle(.plain)
-                }
             }
             .padding(.horizontal, 24)
             .padding(.vertical, 18)

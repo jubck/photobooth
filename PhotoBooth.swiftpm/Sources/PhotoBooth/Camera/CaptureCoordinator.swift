@@ -15,10 +15,23 @@ final class CaptureCoordinator: ObservableObject {
         self.camera = camera
     }
 
+    private var sequenceTask: Task<Void, Never>?
+
     func start() {
         guard !isCapturing else { return }
         isCapturing = true
-        Task { await runSequence() }
+        sequenceTask = Task { await runSequence() }
+    }
+
+    /// Stops a sequence in progress without delivering any photos, so leaving the
+    /// capture screen mid-countdown can't jump the app forward to review later.
+    func cancel() {
+        sequenceTask?.cancel()
+        sequenceTask = nil
+        isCapturing = false
+        isFlashing = false
+        countdown = 0
+        shotIndex = 0
     }
 
     private func runSequence() async {
@@ -26,11 +39,13 @@ final class CaptureCoordinator: ObservableObject {
         for index in 1...totalShots {
             shotIndex = index
             await countdownStep()
+            if Task.isCancelled { return }
             let image = await flashAndCapture()
             if let image {
                 results.append(image)
             }
             try? await Task.sleep(nanoseconds: 400_000_000)
+            if Task.isCancelled { return }
         }
         isCapturing = false
         shotIndex = 0
@@ -41,6 +56,7 @@ final class CaptureCoordinator: ObservableObject {
         for value in stride(from: 3, through: 1, by: -1) {
             countdown = value
             try? await Task.sleep(nanoseconds: 700_000_000)
+            if Task.isCancelled { break }
         }
         countdown = 0
     }

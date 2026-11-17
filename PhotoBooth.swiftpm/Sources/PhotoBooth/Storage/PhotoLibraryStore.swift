@@ -22,15 +22,21 @@ final class PhotoLibraryStore {
     private static let albumName = "PhotoBooth"
     private let imageManager = PHCachingImageManager()
 
-    func save(_ image: UIImage) async {
-        guard await ensureAuthorization() else { return }
-        guard let album = await fetchOrCreateAlbum() else { return }
+    /// Saves the image to the album and returns the new asset's local identifier,
+    /// or nil if it could not be saved.
+    @discardableResult
+    func save(_ image: UIImage) async -> String? {
+        guard await ensureAuthorization() else { return nil }
+        guard let album = await fetchOrCreateAlbum() else { return nil }
+        var identifier: String?
         try? await PHPhotoLibrary.shared().performChanges {
             let creationRequest = PHAssetCreationRequest.creationRequestForAsset(from: image)
             guard let placeholder = creationRequest.placeholderForCreatedAsset,
                   let albumChangeRequest = PHAssetCollectionChangeRequest(for: album) else { return }
+            identifier = placeholder.localIdentifier
             albumChangeRequest.addAssets([placeholder] as NSArray)
         }
+        return identifier
     }
 
     func loadAll() async -> [SavedStrip] {
@@ -53,6 +59,11 @@ final class PhotoLibraryStore {
             guard let changeRequest = PHAssetCollectionChangeRequest(for: album) else { return }
             changeRequest.removeAssets([asset] as NSArray)
         }
+    }
+
+    func removeFromAlbum(localIdentifier: String) async {
+        guard let asset = PHAsset.fetchAssets(withLocalIdentifiers: [localIdentifier], options: nil).firstObject else { return }
+        await removeFromAlbum(asset)
     }
 
     func requestThumbnail(for asset: PHAsset, targetSize: CGSize) async -> UIImage? {

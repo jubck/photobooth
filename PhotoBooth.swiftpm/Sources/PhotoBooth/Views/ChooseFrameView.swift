@@ -6,7 +6,7 @@ struct ChooseFrameView: View {
     private let columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
 
     var body: some View {
-        PanelScreen(title: "choose your frame!", onClose: { session.backToReview() }) {
+        PanelScreen(title: "choose your frame!", onBack: { session.backToReview() }) {
             VStack(spacing: 28) {
                 LazyVGrid(columns: columns, spacing: 22) {
                     ForEach(FrameStyle.allCases) { frame in

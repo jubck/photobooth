@@ -32,6 +32,10 @@ final class PhotoBoothSession: ObservableObject {
     @Published var savedStrips: [SavedStrip] = []
     @Published var viewingSavedStrip: SavedStrip?
 
+    /// The in-flight or finished auto-save of the current photos' strip, so a later
+    /// re-apply of the frame can replace it instead of adding a duplicate.
+    private var pendingSave: Task<String?, Never>?
+
     func reset() {
         rawImages = []
         filteredImages = []
@@ -49,6 +53,7 @@ final class PhotoBoothSession: ObservableObject {
     func captureFinished(images: [UIImage]) {
         rawImages = images
         filteredImages = images.map { VintageFilters.apply(style: style, to: $0) }
+        pendingSave = nil // new photos: never replace a strip saved from earlier ones
         stage = .review
     }
 
@@ -76,9 +81,22 @@ final class PhotoBoothSession: ObservableObject {
         ) else { return }
         composedSheet = sheet
         stage = .preview
-        Task {
-            await PhotoLibraryStore.shared.save(sheet)
+
+        // The user can come back from the preview and apply a different frame. The
+        // earlier version was already auto-saved, so take it out of the PhotoBooth
+        // album (it stays in Photos, as with removing a strip from the gallery)
+        // rather than listing the same photos twice.
+        let previousSave = pendingSave
+        pendingSave = Task {
+            if let previousID = await previousSave?.value {
+                await PhotoLibraryStore.shared.removeFromAlbum(localIdentifier: previousID)
+            }
+            return await PhotoLibraryStore.shared.save(sheet)
         }
+    }
+
+    func backToChooseFrame() {
+        stage = .chooseFrame
     }
 
     func openGallery() {
