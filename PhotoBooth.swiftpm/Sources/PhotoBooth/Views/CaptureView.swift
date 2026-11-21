@@ -18,6 +18,19 @@ struct CaptureView: View {
                 .ignoresSafeArea()
 
             VStack {
+                HStack {
+                    BackButton {
+                        coordinator.cancel()
+                        session.reset()
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 24)
+                Spacer()
+            }
+
+            VStack {
                 Text("shot \(min(coordinator.shotIndex, coordinator.totalShots)) of \(coordinator.totalShots)")
                     .font(.appFont(16, weight: .bold))
                     .foregroundStyle(Theme.ink)
@@ -50,6 +63,7 @@ struct CaptureView: View {
             camera.start()
         }
         .onDisappear {
+            coordinator.cancel()
             camera.stop()
         }
         .onAppear {
